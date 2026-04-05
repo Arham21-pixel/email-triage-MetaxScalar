@@ -962,6 +962,7 @@ def step(action: EmailAction):
         email_id=action.email_id,
         priority=action.priority,
         category=action.category,
+        reply=action.reply,
         reasoning=action.reasoning,
     )
     

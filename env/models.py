@@ -25,6 +25,8 @@ class Label(BaseModel):
     category: Category
 
 class TriageResult(BaseModel):
+    email_id: str | None = None
     priority: Priority | None = None
     category: Category | None = None
     reply: str | None = None
+    reasoning: str | None = None

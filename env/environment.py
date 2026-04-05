@@ -15,31 +15,17 @@ class EmailTriageEnvironment:
         self.max_steps = len(self.emails)
         self.total_reward = 0.0
         
-    def reset(self) -> dict[str, Any]:
+    def reset(self) -> Email | None:
         self.current_idx = 0
         self.total_reward = 0.0
-        first_email = self.emails[self.current_idx] if self.emails else None
-        return {
-            "first_email": first_email
-        }
+        return self.emails[self.current_idx] if self.emails else None
         
-    def step(self, action_dict: dict[str, Any]) -> dict[str, Any]:
+    def step(self, predicted: TriageResult) -> tuple[Email | None, float, bool, dict[str, Any]]:
         if self.current_idx >= self.max_steps:
-            return {
-                "observation": None,
-                "reward": 0.0,
-                "done": True,
-                "info": {"error": "Episode fully done"}
-            }
+            return None, 0.0, True, {"error": "Episode fully done"}
             
         current_email = self.emails[self.current_idx]
-        email_id = action_dict.get("email_id")
-        
-        predicted = TriageResult(
-            priority=action_dict.get("priority"),
-            category=action_dict.get("category"),
-            reply=action_dict.get("reply")
-        )
+        email_id = predicted.email_id
         
         gt = LABELS.get(current_email.id)
         
@@ -51,12 +37,8 @@ class EmailTriageEnvironment:
         done = self.current_idx >= self.max_steps
         next_email = self.emails[self.current_idx] if not done else None
         
-        return {
-            "observation": next_email,
-            "reward": reward,
-            "done": done,
-            "info": {"current_email_graded": email_id, "score": reward}
-        }
+        info = {"current_email_graded": email_id, "score": reward}
+        return next_email, reward, done, info
         
     def state(self) -> dict[str, Any]:
         current_email = self.emails[self.current_idx] if self.current_idx < self.max_steps else None
