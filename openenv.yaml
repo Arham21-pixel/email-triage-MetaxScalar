@@ -1,0 +1,150 @@
+name: email-triage-env
+version: "1.0.0"
+description: >
+  A real-world email triage environment where AI agents classify email priority,
+  category and draft professional replies. Benchmark for evaluating LLM-based
+  email handling capabilities.
+
+author: ""
+
+tags:
+  - email
+  - triage
+  - nlp
+  - classification
+  - real-world
+  - openenv
+
+observation_space:
+  email_id: string
+  subject: string
+  body: string
+  from_email: string
+  timestamp: string (ISO-8601)
+  sender: string
+
+action_space:
+  priority: "urgent | normal | low"
+  category: "billing | support | spam | inquiry"
+  reply: "string (optional, recommended)"
+
+reward_range: [0.0, 1.0]
+max_steps: 30
+num_tasks: 30
+
+tasks:
+  - id: task1
+    name: "Priority Classification"
+    difficulty: easy
+    description: "Classify email priority only (urgent/normal/low)"
+    max_score: 1.0
+    metrics:
+      - priority_accuracy
+  
+  - id: task2
+    name: "Priority and Category"
+    difficulty: medium
+    description: "Classify both priority and category"
+    max_score: 1.0
+    metrics:
+      - priority_accuracy
+      - category_accuracy
+      - exact_match_accuracy
+  
+  - id: task3
+    name: "Full Triage with Reply"
+    difficulty: hard
+    description: "Classify priority, category and draft professional reply"
+    max_score: 1.0
+    metrics:
+      - priority_accuracy
+      - category_accuracy
+      - exact_match_accuracy
+      - reply_quality
+
+environment:
+  class: env.environment.EmailTriageEnvironment
+  module: env
+  entry_point: env.environment:EmailTriageEnvironment
+  shuffle: false
+  seed: 42
+
+api:
+  framework: fastapi
+  entry_point: api.main:app
+  host: "0.0.0.0"
+  port: 7860
+  endpoints:
+    health: "GET /healthz"
+    reset: "POST /reset"
+    step: "POST /step"
+    state: "GET /state"
+    list_emails: "GET /emails"
+    get_email: "GET /emails/{email_id}"
+    docs: "GET /docs"
+  cors: true
+
+inference:
+  script: inference.py
+  language: python
+  requirements:
+    - openai>=1.30.0
+    - httpx>=0.27.0
+  environment_variables:
+    - API_BASE_URL
+    - MODEL_NAME
+    - HF_TOKEN
+  constants:
+    max_steps: 30
+    max_total_reward: 30.0
+    success_threshold: 0.5
+    temperature: 0.0
+    max_tokens: 200
+
+grader:
+  scoring_scheme:
+    task1:
+      description: "Priority classification only"
+      formula: "1.0 if priority correct else 0.0"
+    task2:
+      description: "Priority and category classification"
+      formula: "1.0 if both correct, 0.5 if one correct, 0.0 if neither"
+    task3:
+      description: "Full triage with reply"
+      formula: "0.3 * priority_score + 0.3 * category_score + 0.4 * reply_quality"
+  metrics:
+    - exact_match_accuracy
+    - priority_accuracy
+    - category_accuracy
+    - mean_score
+
+dataset:
+  distribution:
+    priority:
+      urgent: 10
+      normal: 10
+      low: 10
+    category:
+      billing: 8
+      support: 8
+      spam: 7
+      inquiry: 7
+  characteristics:
+    - realistic mock emails
+    - diverse writing styles
+    - authentic domain language
+    - edge cases and ambiguities
+
+docker:
+  image: email-triage-env
+  base: python:3.11-slim
+  port: 7860
+  health_check: /healthz
+
+metadata:
+  author: "Email Triage OpenEnv"
+  license: MIT
+  python_requires: ">=3.11"
+  created: "2024-09-01"
+  status: stable
+  port: 7860
