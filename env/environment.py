@@ -40,6 +40,9 @@ class EmailTriageEnvironment:
         info = {"current_email_graded": email_id, "score": reward}
         return next_email, reward, done, info
         
+    def current_observation(self) -> Email | None:
+        return self.emails[self.current_idx] if self.current_idx < self.max_steps else None
+        
     def state(self) -> dict[str, Any]:
         current_email = self.emails[self.current_idx] if self.current_idx < self.max_steps else None
         return {
