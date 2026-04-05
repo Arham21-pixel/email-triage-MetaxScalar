@@ -18,7 +18,7 @@ import os
 import sys
 
 import httpx
-from openai import AsyncOpenAI
+from openai import OpenAI
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -107,7 +107,7 @@ async def run_inference() -> None:
     log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
     
     # Initialize clients
-    client = AsyncOpenAI(api_key=API_KEY, base_url=API_BASE_URL)
+    client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL)
     http_client = httpx.AsyncClient(timeout=30.0)
     
     try:
@@ -137,7 +137,7 @@ async def run_inference() -> None:
                 )
                 
                 # Call LLM
-                response = await client.chat.completions.create(
+                response = client.chat.completions.create(
                     model=MODEL_NAME,
                     messages=[
                         {"role": "system", "content": SYSTEM_PROMPT},
