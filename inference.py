@@ -57,7 +57,7 @@ def log_step(step: int, action: str, reward: float, done: bool, error: str | Non
 def log_end(success: bool, steps: int, score: float, rewards: list[float]) -> None:
     """Log episode end."""
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
-    print(f"[END] success={str(success).lower()} steps={steps} score={score:.3f} rewards={rewards_str}", flush=True)
+    print(f"[END] success={str(success).lower()} steps={steps} score={score:.2f} rewards={rewards_str}", flush=True)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -182,9 +182,11 @@ async def run_inference() -> None:
                 
             except json.JSONDecodeError as e:
                 error = f"JSON parse error: {str(e)}"
+                rewards.append(0.0)
                 log_step(step=step, action="error", reward=0.0, done=False, error=error)
             except Exception as e:
                 error = f"Exception: {type(e).__name__}: {str(e)}"
+                rewards.append(0.0)
                 log_step(step=step, action="error", reward=0.0, done=False, error=error)
         
         # Calculate final score
