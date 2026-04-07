@@ -28,6 +28,12 @@ def task1(prediction: TriageResult, ground_truth: Label) -> float: return task1_
 def task2(prediction: TriageResult, ground_truth: Label) -> float: return task2_grader(prediction, ground_truth)
 def task3(prediction: TriageResult, ground_truth: Label) -> float: return task3_grader(prediction, ground_truth)
 
+TASK_GRADERS = {
+    "task1": task1,
+    "task2": task2,
+    "task3": task3,
+}
+
 def triage_grader(prediction: TriageResult, ground_truth: Label) -> float:
     """
     Grades the LLM predicted triage against ground truth.

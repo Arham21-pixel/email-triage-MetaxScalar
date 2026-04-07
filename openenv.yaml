@@ -38,8 +38,9 @@ tasks:
     difficulty: easy
     description: "Classify email priority only (urgent/normal/low)"
     grader: env.graders:task1
+    grader_id: task1
     score_range: [0.01, 0.99]
-    max_score: 1.0
+    max_score: 0.99
     metrics:
       - priority_accuracy
   
@@ -48,8 +49,9 @@ tasks:
     difficulty: medium
     description: "Classify both priority and category"
     grader: env.graders:task2
+    grader_id: task2
     score_range: [0.01, 0.99]
-    max_score: 1.0
+    max_score: 0.99
     metrics:
       - priority_accuracy
       - category_accuracy
@@ -60,8 +62,9 @@ tasks:
     difficulty: hard
     description: "Classify priority, category and draft professional reply"
     grader: env.graders:task3
+    grader_id: task3
     score_range: [0.01, 0.99]
-    max_score: 1.0
+    max_score: 0.99
     metrics:
       - priority_accuracy
       - category_accuracy
@@ -123,6 +126,11 @@ grader:
     - priority_accuracy
     - category_accuracy
     - mean_score
+
+graders:
+  task1: env.graders:task1
+  task2: env.graders:task2
+  task3: env.graders:task3
 
 dataset:
   distribution:
