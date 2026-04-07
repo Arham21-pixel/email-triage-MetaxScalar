@@ -28,7 +28,7 @@ action_space:
   category: "billing | support | spam | inquiry"
   reply: "string (optional, recommended)"
 
-reward_range: [0.0, 1.0]
+reward_range: [0.01, 0.99]
 max_steps: 30
 num_tasks: 30
 
@@ -37,6 +37,8 @@ tasks:
     name: "Priority Classification"
     difficulty: easy
     description: "Classify email priority only (urgent/normal/low)"
+    grader: env.graders:task1
+    score_range: [0.01, 0.99]
     max_score: 1.0
     metrics:
       - priority_accuracy
@@ -45,6 +47,8 @@ tasks:
     name: "Priority and Category"
     difficulty: medium
     description: "Classify both priority and category"
+    grader: env.graders:task2
+    score_range: [0.01, 0.99]
     max_score: 1.0
     metrics:
       - priority_accuracy
@@ -55,6 +59,8 @@ tasks:
     name: "Full Triage with Reply"
     difficulty: hard
     description: "Classify priority, category and draft professional reply"
+    grader: env.graders:task3
+    score_range: [0.01, 0.99]
     max_score: 1.0
     metrics:
       - priority_accuracy
@@ -105,13 +111,13 @@ grader:
   scoring_scheme:
     task1:
       description: "Priority classification only"
-      formula: "1.0 if priority correct else 0.0"
+      formula: "0.99 if priority correct else 0.01"
     task2:
       description: "Priority and category classification"
-      formula: "1.0 if both correct, 0.5 if one correct, 0.0 if neither"
+      formula: "0.99 if both correct, 0.50 if one correct, 0.01 if neither"
     task3:
       description: "Full triage with reply"
-      formula: "0.3 * priority_score + 0.3 * category_score + 0.4 * reply_quality"
+      formula: "0.01 + 0.30 * priority_score + 0.30 * category_score + 0.38 * reply_quality"
   metrics:
     - exact_match_accuracy
     - priority_accuracy

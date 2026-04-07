@@ -22,7 +22,7 @@ class EmailTriageEnvironment:
         
     def step(self, predicted: TriageResult) -> tuple[Email | None, float, bool, dict[str, Any]]:
         if self.current_idx >= self.max_steps:
-            return None, 0.0, True, {"error": "Episode fully done"}
+            return None, 0.01, True, {"error": "Episode fully done"}
             
         current_email = self.emails[self.current_idx]
         email_id = predicted.email_id
