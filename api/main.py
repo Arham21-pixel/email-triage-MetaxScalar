@@ -20,7 +20,7 @@ from pydantic import BaseModel
 
 from env.models import Email, Label, TriageResult, Priority, Category
 from env.environment import EmailTriageEnvironment
-from env.graders import triage_grader
+from env.graders import task1_grader, task2_grader, task3_grader
 
 # ──────────────────────────────────────────────────────────────────────────────
 # App setup
@@ -966,13 +966,26 @@ def step(action: EmailAction):
         reasoning=action.reasoning,
     )
     
-    # Get ground truth and compute reward
+    # Get ground truth and compute reward using task-specific grader.
     from env.tasks import LABELS
     ground_truth = LABELS[action.email_id]
-    reward = triage_grader(prediction, ground_truth)
+    email_num = int(action.email_id.split("_")[1])
+    if email_num <= 10:
+        reward = task1_grader(prediction, ground_truth)
+        task_name = "task1"
+    elif email_num <= 20:
+        reward = task2_grader(prediction, ground_truth)
+        task_name = "task2"
+    else:
+        reward = task3_grader(prediction, ground_truth)
+        task_name = "task3"
     
     # Step environment
-    next_obs, _, done, info = _env.step(prediction)
+    next_obs, reward, done, info = _env.step(
+        prediction,
+        reward_override=reward,
+        task_name=task_name,
+    )
     
     return {
         "observation": next_obs,
@@ -980,6 +993,7 @@ def step(action: EmailAction):
         "done": done,
         "info": {
             "email_id": action.email_id,
+            "task": task_name,
             "ground_truth": ground_truth.model_dump(),
             **info,
         },
@@ -989,12 +1003,7 @@ def step(action: EmailAction):
 @app.get("/state", response_model=StateResponse, tags=["Environment"])
 def get_state():
     """Return the current environment state."""
-    return {
-        "current_email": _env.current_observation(),
-        "step_count": _env._index,
-        "total_reward": sum(_env._rewards),
-        "done": len(_env._rewards) >= 30,
-    }
+    return _env.state()
 
 
 @app.get("/emails", response_model=list[Email], tags=["Tasks"])

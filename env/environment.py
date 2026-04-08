@@ -20,7 +20,12 @@ class EmailTriageEnvironment:
         self.total_reward = 0.0
         return self.emails[self.current_idx] if self.emails else None
         
-    def step(self, predicted: TriageResult) -> tuple[Email | None, float, bool, dict[str, Any]]:
+    def step(
+        self,
+        predicted: TriageResult,
+        reward_override: float | None = None,
+        task_name: str | None = None,
+    ) -> tuple[Email | None, float, bool, dict[str, Any]]:
         if self.current_idx >= self.max_steps:
             return None, 0.01, True, {"error": "Episode fully done"}
             
@@ -29,15 +34,35 @@ class EmailTriageEnvironment:
         
         gt = LABELS.get(current_email.id)
         
-        from env.graders import triage_grader
-        reward = triage_grader(predicted, gt)
+        from env.graders import task1_grader, task2_grader, task3_grader, triage_grader
+
+        if reward_override is not None:
+            reward = reward_override
+        else:
+            email_num = int(current_email.id.split("_")[1])
+            if email_num <= 10:
+                reward = task1_grader(predicted, gt)
+                task_name = task_name or "task1"
+            elif email_num <= 20:
+                reward = task2_grader(predicted, gt)
+                task_name = task_name or "task2"
+            else:
+                reward = task3_grader(predicted, gt)
+                task_name = task_name or "task3"
+
+        # Enforce strict validator bounds even if caller provides edge values.
+        reward = min(max(float(reward), 0.01), 0.99)
         self.total_reward += reward
         
         self.current_idx += 1
         done = self.current_idx >= self.max_steps
         next_email = self.emails[self.current_idx] if not done else None
         
-        info = {"current_email_graded": email_id, "score": reward}
+        info = {
+            "current_email_graded": email_id,
+            "score": reward,
+            "task": task_name,
+        }
         return next_email, reward, done, info
         
     def current_observation(self) -> Email | None:
